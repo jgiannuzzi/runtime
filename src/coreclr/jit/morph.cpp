@@ -2526,7 +2526,7 @@ void Compiler::fgInitArgInfo(GenTreeCall* call)
     regMaskTP fltArgSkippedRegMask = RBM_NONE;
 #endif //  TARGET_ARM
 
-#if defined(TARGET_X86)
+#if defined(TARGET_X86) || defined(OSX_ARM64_ABI)
     unsigned maxRegArgs = MAX_REG_ARG; // X86: non-const, must be calculated
 #else
     const unsigned maxRegArgs = MAX_REG_ARG; // other arch: fixed constant number
@@ -2895,6 +2895,21 @@ void Compiler::fgInitArgInfo(GenTreeCall* call)
         argIndex++;
         DEBUG_ARG_SLOTS_ONLY(argSlots++;)
     }
+
+#ifdef OSX_ARM64_ABI
+    // Apple Silicon has a different calling convention for varargs
+    // where all varargs need to be passed on the stack.
+    if (call->gtFlags & GTF_CALL_POP_ARGS)
+    {
+        // Ideally we should determine where the varargs start
+        // but currently the only place where this is used is
+        // CORINFO_HELP_NEW_MDARR, so we hardcode it
+        if (call->IsHelperCall(this, CORINFO_HELP_NEW_MDARR))
+        {
+            maxRegArgs = intArgRegNum + 2;
+        }
+    }
+#endif // OSX_ARM64_ABI
 
 #ifdef TARGET_X86
 // Compute the maximum number of arguments that can be passed in registers.
