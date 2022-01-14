@@ -2047,9 +2047,18 @@ MAPmmapAndRecord(
 
         // Set the requested mapping with forced PROT_WRITE to ensure data from the file can be read there,
         // read the data in and finally remove the forced PROT_WRITE
+
+        // On Apple Silicon, once PROT_EXEC is set, the page can never be written anymore. We thus cannot
+        // set it until we are done with relocation.
+#ifndef CROSSGEN_COMPILE
+        if ((mprotect(pvBaseAddress, len + adjust, (prot ^ PROT_EXEC) | PROT_WRITE) == -1) ||
+            (pread(fd, pvBaseAddress, len + adjust, offset - adjust) == -1) ||
+            (mprotect(pvBaseAddress, len + adjust, prot ^ PROT_EXEC) == -1))
+#else
         if ((mprotect(pvBaseAddress, len + adjust, prot | PROT_WRITE) == -1) ||
             (pread(fd, pvBaseAddress, len + adjust, offset - adjust) == -1) ||
             (((prot & PROT_WRITE) == 0) && mprotect(pvBaseAddress, len + adjust, prot) == -1))
+#endif //!CROSSGEN_COMPILE
         {
             palError = FILEGetLastErrorFromErrno();
         }
