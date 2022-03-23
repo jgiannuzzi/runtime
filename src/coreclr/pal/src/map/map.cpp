@@ -2038,6 +2038,7 @@ MAPmmapAndRecord(
 #ifdef __APPLE__
     if ((prot & PROT_EXEC) != 0 && IsRunningOnMojaveHardenedRuntime())
     {
+        fprintf(stderr, "MAPmmapAndRecord: %p -> %p (%llu)\n", pvBaseAddress, static_cast<char *>(pvBaseAddress) + len + adjust, len + adjust);
         // Mojave hardened runtime doesn't allow executable mappings of a file. So we have to create an
         // anonymous mapping and read the file contents into it instead.
 

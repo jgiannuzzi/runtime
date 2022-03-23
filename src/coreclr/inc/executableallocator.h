@@ -289,6 +289,7 @@ public:
 
     ExecutableWriterHolder(T* addressRX, size_t size)
     {
+        fprintf(stderr, "ExecutableWriterHolder(%p, %lu)\n", static_cast<void *>(addressRX), size);
         m_addressRX = addressRX;
 #if defined(HOST_OSX) && defined(HOST_ARM64)
         m_addressRW = addressRX;
