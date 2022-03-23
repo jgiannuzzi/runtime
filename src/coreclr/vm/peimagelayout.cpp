@@ -248,6 +248,10 @@ void PEImageLayout::ApplyBaseRelocations()
                     ThrowLastError();
 #ifdef TARGET_UNIX
                 dwOldProtection = SectionCharacteristicsToPageProtection(pSection->Characteristics);
+#if defined(TARGET_OSX) && (TARGET_ARM64)
+                if (dwOldProtection == PAGE_EXECUTE_READ)
+                    dwOldProtection = PAGE_EXECUTE_READWRITE;
+#endif // TARGET_OSX && TARGET_ARM64
 #endif // TARGET_UNIX
             }
         }
